@@ -105,6 +105,14 @@ def pitch_rate_penalty_2(
     pitch_rate = asset.data.root_ang_vel_b[:, 1]
     return torch.square(pitch_rate)
 
+def roll_rate_penalty(
+env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
+) -> torch.Tensor:
+    """Penalizes high roll rate"""
+
+    asset: Articulation = env.scene[asset_cfg.name]
+    roll_rate = asset.data.root_ang_vel_b[:, 0]
+    return torch.square(roll_rate)
 """
 Feet rewards.
 """
@@ -155,12 +163,13 @@ def foot_clearance_reward(
     reward = foot_z_target_error * foot_velocity_tanh
     return torch.exp(-torch.sum(reward, dim=1) / std)
 
-def feet_too_near(
+def feet_spacing_penalty(
     env: ManagerBasedRLEnv, threshold: float = 0.2, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
     asset: Articulation = env.scene[asset_cfg.name]
     feet_pos = asset.data.body_pos_w[:, asset_cfg.body_ids, :]
     distance = torch.norm(feet_pos[:, 0] - feet_pos[:, 1], dim=-1)
+    print(f"[INFO] : Distance = {distance}")
     return (threshold - distance).clamp(min=0)
 
 def foot_slip_penalty(
@@ -211,11 +220,11 @@ def air_time_variance_penalty(env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg
 
 def roll_penalty(
         env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
-):
+) -> torch.Tensor:
     """Penalize roll angle of the robot."""
-    asset: RigidObject = env.scene[asset_cfg.name]
+    asset: Articulation = env.scene[asset_cfg.name]
     roll = asset.data.projected_gravity_b[:, 0]
-    return torch.pow(roll, 2)
+    return torch.square(roll)
 
 
 """
@@ -275,3 +284,5 @@ def joint_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_joint
         )
     reward *= 1 / len(mirror_joints) if len(mirror_joints) > 0 else 0
     return reward
+
+

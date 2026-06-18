@@ -37,11 +37,11 @@ COBBLESTONE_ROAD_CFG = terrain_gen.TerrainGeneratorCfg(
             proportion=0.1, noise_range=(0.05, 0.12), noise_step=0.01, border_width=0.25
         ),
         "hf_pyramid_slope": terrain_gen.HfPyramidSlopedTerrainCfg(
-            proportion=0.1, slope_range=(0.3, 0.6), platform_width=2.0, border_width=0.25
+            proportion=0.1, slope_range=(0.5, 0.6), platform_width=2.0, border_width=0.25
         ),
-        "hf_pyramid_slope_inv": terrain_gen.HfInvertedPyramidSlopedTerrainCfg(
-            proportion=0.1, slope_range=(0.3, 0.6), platform_width=2.0, border_width=0.25
-        ),
+        # "hf_pyramid_slope_inv": terrain_gen.HfInvertedPyramidSlopedTerrainCfg(
+        #     proportion=0.1, slope_range=(0.0, 0.4), platform_width=2.0, border_width=0.25
+        # ),
         # "boxes": terrain_gen.MeshRandomGridTerrainCfg(
         #     proportion=0.2, grid_width=0.45, grid_height_range=(0.05, 0.2), platform_width=2.0
         # ),
@@ -126,7 +126,7 @@ class EventCfg:
             "static_friction_range": (0.3, 1.2),
             "dynamic_friction_range": (0.3, 1.2),
             "restitution_range": (0.0, 0.15),
-            "num_buckets": 128,
+            "num_buckets": 64,
         },
     )
 
@@ -135,7 +135,7 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="base_link"),  # Updated body_name from 'base' to 'base_link' to match the trakr_imu.usd file
-            "mass_distribution_params": (-2.0, 4.0),
+            "mass_distribution_params": (-1.0, 3.0),
             "operation": "add",
         },
     )
@@ -180,8 +180,8 @@ class EventCfg:
     push_robot = EventTerm(
         func=mdp.push_by_setting_velocity,
         mode="interval",
-        interval_range_s=(2.0, 5.0),
-        params={"velocity_range": {"x": (-1.5, 1.5), "y": (-1.5, 1.5)}},
+        interval_range_s=(5.0, 10.0),
+        params={"velocity_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5)}},
     )
 
 

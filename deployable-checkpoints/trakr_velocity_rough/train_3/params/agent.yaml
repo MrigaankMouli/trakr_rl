@@ -13,7 +13,7 @@ neptune_project: isaaclab
 wandb_project: isaaclab
 resume: true
 load_run: .*
-load_checkpoint: /home/mrigaank/addverb/mrigaank/mrigaank/trakr-rl/logs/rsl_rl/trakr_velocity/2026-06-17_21-49-56/model_4999.pt
+load_checkpoint: /home/mrigaank/addverb/mrigaank/mrigaank/trakr-rl/logs/rsl_rl/trakr_velocity_rough/2026-06-18_11-57-35/model_7000.pt
 class_name: OnPolicyRunner
 policy:
   class_name: ActorCritic

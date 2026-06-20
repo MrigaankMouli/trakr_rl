@@ -295,7 +295,7 @@ class RewardsCfg:
 
     joint_pos = RewTerm(
         func=mdp.joint_position_penalty,
-        weight=-1.5,
+        weight=-1.25,
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
             "stand_still_scale": 5.0,
@@ -329,7 +329,7 @@ class RewardsCfg:
     
     feet_height_body = RewTerm(
         func=mdp.feet_height_body,
-        weight=-1.5,
+        weight=-2.0,
         params={
             "command_name": "base_velocity",
             "target_height": 0.15,
@@ -427,3 +427,8 @@ class RobotPlayEnvCfg(RobotEnvCfg):
         self.scene.terrain.terrain_generator.num_rows = 3
         self.scene.terrain.terrain_generator.num_cols = 3
         self.commands.base_velocity.ranges = self.commands.base_velocity.limit_ranges
+
+        self.terminations.time_out = None
+
+        self.events.push_robot = None
+        self.events.base_external_force_torque = None

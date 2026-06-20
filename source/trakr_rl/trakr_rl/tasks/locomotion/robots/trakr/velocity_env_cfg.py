@@ -413,3 +413,8 @@ class RobotPlayEnvCfg(RobotEnvCfg):
         self.scene.terrain.terrain_generator.num_rows = 2
         self.scene.terrain.terrain_generator.num_cols = 1
         self.commands.base_velocity.ranges = self.commands.base_velocity.limit_ranges
+
+        self.terminations.time_out = None
+
+        self.events.push_robot = None
+        self.events.base_external_force_torque = None

@@ -285,4 +285,36 @@ def joint_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_joint
     reward *= 1 / len(mirror_joints) if len(mirror_joints) > 0 else 0
     return reward
 
+def stable_progress(
+        env: ManagerBasedRLEnv,
+        command_name="base_velocity",
+        asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
+) -> torch.Tensor:
+    
+    "Rewards progress with stable gaits"
+
+    asset: Articulation = env.scene[asset_cfg.name]
+
+    cmd = env.command_manager.get_command(command_name)
+    cmd_vel = torch.linalg.norm(
+        cmd[:, :2],
+        dim=1
+    )
+
+    lin_vel = torch.clamp(
+        asset.data.root_lin_vel_b[:, 1],
+        min=0
+    )
+
+    omega = asset.data.root_ang_vel_b
+    pitch_rate = omega[:, 1]
+    roll_rate = omega[:, 0]
+
+    stability = torch.exp(
+        -2.0 * (
+            torch.square(pitch_rate) + torch.square(roll_rate)
+        )
+    )
+
+    return torch.where(cmd_vel > 0.1, lin_vel * stability, torch.zeros_like(lin_vel))
 

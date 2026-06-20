@@ -272,7 +272,7 @@ class RewardsCfg:
 
     # -- task
     track_lin_vel_xy = RewTerm(
-        func=mdp.track_lin_vel_xy_exp, weight=4.0, params={"command_name": "base_velocity", "std": math.sqrt(0.25)}
+        func=mdp.track_lin_vel_xy_exp, weight=3.5, params={"command_name": "base_velocity", "std": math.sqrt(0.25)}
     )
     track_ang_vel_z = RewTerm(
         func=mdp.track_ang_vel_z_exp, weight=1.25, params={"command_name": "base_velocity", "std": math.sqrt(0.25)}
@@ -289,13 +289,16 @@ class RewardsCfg:
     energy = RewTerm(func=mdp.energy, weight=-2e-5)
 
     # -- robot
-    flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=-2.5)
+    flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=-2.0)
 
-    # roll_rate_penalty = RewTerm(func=mdp.roll_rate_penalty, weight=-2.0)
+    stable_progress = RewTerm(
+        func=mdp.stable_progress,
+        weight=2.0
+    )
 
     joint_pos = RewTerm(
         func=mdp.joint_position_penalty,
-        weight=-1.25,
+        weight=-1.5,
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
             "stand_still_scale": 5.0,
@@ -316,8 +319,10 @@ class RewardsCfg:
     air_time_variance = RewTerm(
         func=mdp.air_time_variance_penalty,
         weight=-0.5,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_toe")},
+        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=["LF_toe", "RF_toe",
+                                                                            "LB_toe", "RB_toe"])},
     )
+
     feet_slide = RewTerm(
         func=mdp.feet_slide,
         weight=-0.1,
@@ -329,7 +334,7 @@ class RewardsCfg:
     
     feet_height_body = RewTerm(
         func=mdp.feet_height_body,
-        weight=-2.0,
+        weight=-2.5,
         params={
             "command_name": "base_velocity",
             "target_height": 0.15,

@@ -286,35 +286,31 @@ def joint_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_joint
     return reward
 
 def stable_progress(
-        env: ManagerBasedRLEnv,
-        command_name="base_velocity",
-        asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
+    env: ManagerBasedRLEnv,
+    command_name="base_velocity",
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
-    
-    "Rewards progress with stable gaits"
+
+    """Rewards progress along commanded direction with stable gait."""
 
     asset: Articulation = env.scene[asset_cfg.name]
 
     cmd = env.command_manager.get_command(command_name)
-    cmd_vel = torch.linalg.norm(
-        cmd[:, :2],
-        dim=1
-    )
+    cmd_vel = torch.linalg.norm(cmd[:, :2], dim=1)
 
-    lin_vel = torch.clamp(
-        asset.data.root_lin_vel_b[:, 1],
-        min=0
-    )
+    cmd_dir = cmd[:, :2] / (torch.linalg.norm(cmd[:, :2],dim=1,keepdim=True) + 1e-6)
+
+    robot_vel = asset.data.root_lin_vel_b[:, :2]
+
+    lin_vel = torch.sum(robot_vel * cmd_dir,dim=1)
+
+    lin_vel = torch.clamp(lin_vel,min=0.0)
 
     omega = asset.data.root_ang_vel_b
+
     pitch_rate = omega[:, 1]
     roll_rate = omega[:, 0]
 
-    stability = torch.exp(
-        -2.0 * (
-            torch.square(pitch_rate) + torch.square(roll_rate)
-        )
-    )
-
-    return torch.where(cmd_vel > 0.1, lin_vel * stability, torch.zeros_like(lin_vel))
+    stability = torch.exp(-2.0 * (torch.square(pitch_rate)+torch.square(roll_rate)))
+    return torch.where(cmd_vel>0.1, lin_vel*stability, torch.zeros_like(lin_vel))
 

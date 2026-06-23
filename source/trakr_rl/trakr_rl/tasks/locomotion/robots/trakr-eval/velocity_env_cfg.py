@@ -36,9 +36,9 @@ COBBLESTONE_ROAD_CFG = terrain_gen.TerrainGeneratorCfg(
         "random_rough": terrain_gen.HfRandomUniformTerrainCfg(
             proportion=0.1, noise_range=(0.05, 0.12), noise_step=0.01, border_width=0.25
         ),
-        "hf_pyramid_slope": terrain_gen.HfPyramidSlopedTerrainCfg(
-            proportion=0.1, slope_range=(0.5, 0.6), platform_width=2.0, border_width=0.25
-        ),
+        # "hf_pyramid_slope": terrain_gen.HfPyramidSlopedTerrainCfg(
+        #     proportion=0.1, slope_range=(0.5, 0.6), platform_width=2.0, border_width=0.25
+        # ),
         # "hf_pyramid_slope_inv": terrain_gen.HfInvertedPyramidSlopedTerrainCfg(
         #     proportion=0.1, slope_range=(0.0, 0.4), platform_width=2.0, border_width=0.25
         # ),

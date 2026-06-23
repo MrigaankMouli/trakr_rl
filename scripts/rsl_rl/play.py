@@ -30,6 +30,7 @@ parser.add_argument(
     help="Use the pre-trained checkpoint from Nucleus.",
 )
 parser.add_argument("--real-time", action="store_true", default=False, help="Run in real-time, if possible.")
+parser.add_argument("--eval", action="store_true", default=False, help="Save OOD evaluation metrics")
 # append RSL-RL cli arguments
 cli_args.add_rsl_rl_args(parser)
 # append AppLauncher cli args
@@ -205,54 +206,59 @@ def main():
         if args_cli.real_time and sleep_time > 0:
             time.sleep(sleep_time)
 
-        if total_terminals > 0:
+        if args_cli.eval: 
+            if total_terminals > 0:
 
-            avg_vel_reward = sum(episode_vel_rewards) / len(episode_vel_rewards)
+                avg_vel_reward = sum(episode_vel_rewards) / len(episode_vel_rewards)
 
-            timeout_fraction = (
-                total_timeout / total_terminals
-            )
+                timeout_fraction = (
+                    total_timeout / total_terminals
+                )
 
-            base_contact_fraction = (
-                total_base_contact / total_terminals
-            )
+                base_contact_fraction = (
+                    total_base_contact / total_terminals
+                )
 
-            bad_orientation_fraction = (
-                total_bad_orientation / total_terminals
-            )
+                bad_orientation_fraction = (
+                    total_bad_orientation / total_terminals
+                )
 
-            print("\n===== OOD Metrics =====")
-            print(f"Velocity Tracking Reward: {avg_vel_reward:.4f}")
-            print(f"Episodes completed: {total_terminals}")
-            print(f"Timeout fraction: {timeout_fraction:.4f}")
-            print(f"Base-contact fraction: {base_contact_fraction:.4f}")
-            print(f"Bad-orientation fraction: {bad_orientation_fraction:.4f}")
+                print("\n===== OOD Metrics =====")
+                print(f"Velocity Tracking Reward: {avg_vel_reward:.4f}")
+                print(f"Episodes completed: {total_terminals}")
+                print(f"Timeout fraction: {timeout_fraction:.4f}")
+                print(f"Base-contact fraction: {base_contact_fraction:.4f}")
+                print(f"Bad-orientation fraction: {bad_orientation_fraction:.4f}")
 
     # close the simulator
     env.close()
 
-    os.makedirs("Metrics", exist_ok=True)
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    if args_cli.eval:
 
-    results =  {
-        "task" : args_cli.task,
-        "total_terminals": total_terminals,
-        "total_timeout": total_timeout,
-        "total_base_contact": total_base_contact,
-        "total_bad_orientation": total_bad_orientation,
-        "timeout_fraction": timeout_fraction if total_terminals > 0 else None,
-        "base_contact_fraction": base_contact_fraction if total_terminals > 0 else None,
-        "bad_orientation_fraction": bad_orientation_fraction if total_terminals > 0 else None,
-        "velocity_tracking_reward": avg_vel_reward if episode_vel_rewards else None,
-        "timestamp": timestamp
-    }
+        os.makedirs("Metrics", exist_ok=True)
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-    save_path = os.path.join("Metrics", f"ood_metrics_{args_cli.task}_{timestamp}.json")
-    
-    with open(save_path, "w") as f:
-        json.dump(results, f, indent=4)
+        task_description = input("\n Enter the task description for OOD Run").strip()
 
-    print(f"[INFO] OOD metrics saved to: {save_path}")
+        results =  {
+            "description": task_description,
+            "total_terminals": total_terminals,
+            "total_timeout": total_timeout,
+            "total_base_contact": total_base_contact,
+            "total_bad_orientation": total_bad_orientation,
+            "timeout_fraction": timeout_fraction if total_terminals > 0 else None,
+            "base_contact_fraction": base_contact_fraction if total_terminals > 0 else None,
+            "bad_orientation_fraction": bad_orientation_fraction if total_terminals > 0 else None,
+            "velocity_tracking_reward": avg_vel_reward if episode_vel_rewards else None,
+            "timestamp": timestamp
+        }
+
+        save_path = os.path.join("Metrics", f"ood_metrics_{args_cli.task}_{timestamp}.json")
+        
+        with open(save_path, "w") as f:
+            json.dump(results, f, indent=4)
+
+        print(f"[INFO] OOD metrics saved to: {save_path}")
 
 if __name__ == "__main__":
     # run the main function

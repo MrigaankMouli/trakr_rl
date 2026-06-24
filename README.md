@@ -70,7 +70,10 @@ If the Trakr USD path changes, update it in:
 │               └── locomotion/
 │                   └── robots/
 │                       ├── trakr/
-│                       └── trakr-rough/
+│                       ├── trakr-rough/
+|                       ├── trakr-stairs/
+|                       ├── trakr-blocks/
+|                       └── trakr-eval/
 ├── logs/
 └── trakr_rl.sh
 ```

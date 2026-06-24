@@ -32,7 +32,7 @@ COBBLESTONE_ROAD_CFG = terrain_gen.TerrainGeneratorCfg(
     difficulty_range=(0.0, 1.0),
     use_cache=False,
     sub_terrains={
-        # "flat": terrain_gen.MeshPlaneTerrainCfg(proportion=0.1),
+        "flat": terrain_gen.MeshPlaneTerrainCfg(proportion=0.1),
         # "random_rough": terrain_gen.HfRandomUniformTerrainCfg(
         #     proportion=0.1, noise_range=(0.05, 0.12), noise_step=0.01, border_width=0.25
         # ),
@@ -42,9 +42,9 @@ COBBLESTONE_ROAD_CFG = terrain_gen.TerrainGeneratorCfg(
         # "hf_pyramid_slope_inv": terrain_gen.HfInvertedPyramidSlopedTerrainCfg(
         #     proportion=0.1, slope_range=(0.0, 0.4), platform_width=2.0, border_width=0.25
         # ),
-        "boxes": terrain_gen.MeshRandomGridTerrainCfg(
-            proportion=0.2, grid_width=0.45, grid_height_range=(0.05, 0.18), platform_width=2.0
-        ),
+        # "boxes": terrain_gen.MeshRandomGridTerrainCfg(
+        #     proportion=0.2, grid_width=0.45, grid_height_range=(0.05, 0.18), platform_width=2.0
+        # ),
         # "pyramid_stairs": terrain_gen.MeshPyramidStairsTerrainCfg(
         #     proportion=0.2,
         #     step_height_range=(0.08, 0.15),
@@ -55,7 +55,7 @@ COBBLESTONE_ROAD_CFG = terrain_gen.TerrainGeneratorCfg(
         # ),
         # "pyramid_stairs_inv": terrain_gen.MeshInvertedPyramidStairsTerrainCfg(
         #     proportion=0.2,
-        #     step_height_range=(0.08, 0.15),
+        #     step_height_range=(0.08, 0.17),
         #     step_width=0.3,
         #     platform_width=3.0,
         #     border_width=1.0,
@@ -126,7 +126,7 @@ class EventCfg:
             "static_friction_range": (0.3, 1.2),
             "dynamic_friction_range": (0.3, 1.2),
             "restitution_range": (0.0, 0.15),
-            "num_buckets": 64,
+            "num_buckets": 1,
         },
     )
 
@@ -135,7 +135,7 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="base_link"),  # Updated body_name from 'base' to 'base_link' to match the trakr_imu.usd file
-            "mass_distribution_params": (-1.0, 3.0),
+            "mass_distribution_params": (15.0, 15.0),
             "operation": "add",
         },
     )

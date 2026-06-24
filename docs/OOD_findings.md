@@ -6,7 +6,7 @@ This document covers the OOD results from the Trakr Baseline in the same OOD tas
 
 For OOD results, the metrics considered are identical to the metrics used to evaluate the Rough AsymPPO checkpoint:
 
-- velocity_error
+- `velocity_error`
 - `timeout_fraction_of_terminals`
 - `base_contact_fraction_of_terminals`
 - `bad_orientation_fraction_of_terminals`
@@ -33,13 +33,13 @@ Visual Comparison:
 - Trakr AsymPPO checkpoint can handle step heights upto 0.18m with 95% success rate.
 - Trakr checkpoint can traverse down the stairs with a stable gait and low momentum.
 
-### Random Rough Level 9
+### Random Rough
 
 
 ### Boxes
 
 - Trakr AsymPPO:
-  - `episodes = 9106`
+  - `episodes = 106`
   - `vel_err = 0.2704`
   - `timeout_frac = 0.5094`
   - `base_contact_frac = 0.0188`
@@ -47,7 +47,7 @@ Visual Comparison:
 
 Visual Comparison:
 
-- Unitree Rough AsymPPO checkpoint can only traverse through very small height boxes
+- Unitree Rough AsymPPO checkpoint can only traverse through very small height obstacles.
 - It cannot lift its legs to traverse over small step height obstacles.
 - Trakr AsymPPO checkpoint can lift its legs to traverse through obstacles of step height <= 0.18m
 - It cannot lift its legs to overcome obstacles of height > 0.18m
@@ -55,6 +55,21 @@ Visual Comparison:
 - Unitree Rough AsymPPO checkpoint can recover from situations where it has fallen on its base and stand up straight, but the Trakr AsymPPO checkpoint cannot.
 
 ### Stairs Up
+
+- Trakr AsymPPO:
+  - `episodes = 106`
+  - `vel_err = 0.2059`
+  - `timeout_frac = 0.9056`
+  - `base_contact_frac = 0.0000`
+  - `bad_orientation_frac = 0.0943`
+
+Visual Comparison:
+
+- Unitree Rough AsymPPO checkpoint cannot climb up stairs of any step height.
+- However, it does recover well once it has fallen, toppled, or has its feet stuck to regain its stand position.
+- Trakr AsymPPO checkpoint can climb up stairs of step height upto 0.17m with 90% success rate.
+- However it cannot climb up stairs of step height more than 0.18m.
+- Also, it cannot recover from positions where its feet is stuck or it has fallen over. 
 
 
 ## Dynamics OOD Summary
@@ -64,6 +79,20 @@ Visual Comparison:
 
 ### Very Heavy
 
+- Trakr AsymPPO:
+  - `episodes = 96`
+  - `vel_err = 0.6648`
+  - `timeout_frac = 1.0000`
+  - `base_contact_frac = 0.0000`
+  - `bad_orientation_frac = 0.0000`
+
+Visual Comparison:
+
+- Both Unitree Rough AsymPPO and Trakr AsymPPO checkpoints can handle weight additions of 15kgs
+- Trakr AsymPPO can handle the weight better with more stable gait, whereas Unitree Rough AsymPPO has more base contact and comparetively unstable gait.
+- The behavior might be due to the provided Trakr USD, since the base is higher compared to the legs, leading to lesser torque on the motors, and more stable gait.
+- Both checkpoints have high energy usage since the base is low and their is high torque on the knee actuators.
+- Velocity Tracking error is higher for both checkpoints as they have to compensate for more weight.
 
 ### Ultra-Low Friction
 

@@ -35,6 +35,16 @@ Visual Comparison:
 
 ### Random Rough
 
+- Trakr AsymPPO:
+  - `episodes = 111`
+  - `vel_err = 0.2030`
+  - `timeout_frac = 0.7117`
+  - `base_contact_frac = 0.0000`
+  - `bad_orientation_frac = 0.2882`
+
+Visual Comparison:
+
+- 
 
 ### Boxes
 

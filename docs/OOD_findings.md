@@ -44,7 +44,8 @@ Visual Comparison:
 
 Visual Comparison:
 
-- 
+- Both checkpoints perform well on Random Rough terrain.
+- Unitree Rough AsymPPO checkpoint is better at recovering when one of its feet gets stuck.
 
 ### Boxes
 

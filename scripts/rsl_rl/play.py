@@ -8,6 +8,8 @@
 """Launch Isaac Sim Simulator first."""
 
 import argparse
+import signal
+import sys
 from importlib.metadata import version
 
 from isaaclab.app import AppLauncher
@@ -31,6 +33,7 @@ parser.add_argument(
 )
 parser.add_argument("--real-time", action="store_true", default=False, help="Run in real-time, if possible.")
 parser.add_argument("--eval", action="store_true", default=False, help="Save OOD evaluation metrics")
+
 # append RSL-RL cli arguments
 cli_args.add_rsl_rl_args(parser)
 # append AppLauncher cli args
@@ -65,6 +68,7 @@ from isaaclab_tasks.utils import get_checkpoint_path
 
 import trakr_rl.tasks  # noqa: F401
 from trakr_rl.utils.parser_cfg import parse_env_cfg
+from trakr_rl.utils.ood_metrics import OODMetrics
 
 
 def main():
@@ -165,6 +169,24 @@ def main():
 
     dt = env.unwrapped.step_dt
 
+    metrics = OODMetrics()
+
+    if args_cli.eval:
+        def _save_and_exit(signum, frame):
+            print("\n[INFO] Interrupted — saving partial OOD metrics...")
+            try:
+                description = input("Enter the task description for OOD run: ").strip()
+            except EOFError:
+                description = f"PARTIAL (signal {signum})"
+            save_path = metrics.save(args_cli.task, description)
+            print(f"[INFO] Saved to: {save_path}")
+            env.close()
+            simulation_app.close()
+            sys.exit(0)
+
+        signal.signal(signal.SIGINT, _save_and_exit)
+        signal.signal(signal.SIGTERM, _save_and_exit)
+
     # reset environment
     obs = env.get_observations()
     if version("rsl-rl-lib").startswith("2.3."):
@@ -179,21 +201,10 @@ def main():
             actions = policy(obs)
             # env stepping
             obs, _, dones, info = env.step(actions)
-            isaac_env = env.unwrapped
 
-            base_contact = isaac_env.termination_manager.get_term("base_contact")
-            bad_orientation = isaac_env.termination_manager.get_term("bad_orientation")
-            time_out = isaac_env.termination_manager.get_term("time_out")
-
-            total_terminals += int(dones.sum().item())
-
-            total_base_contact += int((dones & base_contact).sum().item())
-            total_bad_orientation += int((dones & bad_orientation).sum().item())
-            total_timeout += int((dones & time_out).sum().item())
-
-            if dones.any():
-                vel_error = info["log"]["Episode_Reward/track_lin_vel_xy"]
-                episode_vel_rewards.append(vel_error.mean().item())
+            if args_cli.eval: 
+                metrics.update(dones, info, env.unwrapped.termination_manager)
+                metrics.print_summary()
 
         if args_cli.video:
             timestep += 1
@@ -206,58 +217,13 @@ def main():
         if args_cli.real_time and sleep_time > 0:
             time.sleep(sleep_time)
 
-        if args_cli.eval: 
-            if total_terminals > 0:
-
-                avg_vel_reward = sum(episode_vel_rewards) / len(episode_vel_rewards)
-
-                timeout_fraction = (
-                    total_timeout / total_terminals
-                )
-
-                base_contact_fraction = (
-                    total_base_contact / total_terminals
-                )
-
-                bad_orientation_fraction = (
-                    total_bad_orientation / total_terminals
-                )
-
-                print("\n===== OOD Metrics =====")
-                print(f"Velocity Tracking Reward: {avg_vel_reward:.4f}")
-                print(f"Episodes completed: {total_terminals}")
-                print(f"Timeout fraction: {timeout_fraction:.4f}")
-                print(f"Base-contact fraction: {base_contact_fraction:.4f}")
-                print(f"Bad-orientation fraction: {bad_orientation_fraction:.4f}")
 
     # close the simulator
     env.close()
 
     if args_cli.eval:
-
-        os.makedirs("Metrics", exist_ok=True)
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
-        task_description = input("\n Enter the task description for OOD Run").strip()
-
-        results =  {
-            "description": task_description,
-            "total_terminals": total_terminals,
-            "total_timeout": total_timeout,
-            "total_base_contact": total_base_contact,
-            "total_bad_orientation": total_bad_orientation,
-            "timeout_fraction": timeout_fraction if total_terminals > 0 else None,
-            "base_contact_fraction": base_contact_fraction if total_terminals > 0 else None,
-            "bad_orientation_fraction": bad_orientation_fraction if total_terminals > 0 else None,
-            "velocity_tracking_reward": avg_vel_reward if episode_vel_rewards else None,
-            "timestamp": timestamp
-        }
-
-        save_path = os.path.join("Metrics", f"ood_metrics_{args_cli.task}_{timestamp}.json")
-        
-        with open(save_path, "w") as f:
-            json.dump(results, f, indent=4)
-
+        description = input("\nEnter the task description for OOD run: ").strip()
+        save_path = metrics.save(args_cli.task, description)
         print(f"[INFO] OOD metrics saved to: {save_path}")
 
 if __name__ == "__main__":

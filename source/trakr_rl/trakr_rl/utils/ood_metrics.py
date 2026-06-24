@@ -2,6 +2,7 @@ import json
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
+import torch
 
 
 @dataclass
@@ -12,13 +13,29 @@ class OODMetrics:
     total_timeout: int = 0
     total_base_contact: int = 0
     total_bad_orientation: int = 0
-    episode_vel_rewards: list = field(default_factory=list)
 
-    def update(self, dones, info, termination_mgr) -> None:
+    vel_tracking_errors: list[tuple[float, float]] = field(default_factory=list)
+
+    def compute_velocity_error(self, env) -> tuple[float | None, float | None]:
+        """Compute the velocity tracking errors"""
+        try:
+            robot = env.scene["robot"]
+            command = env.command_manager.get_command("base_velocity")
+
+            lin_vel = robot.data.root_lin_vel_b[:, :2]
+            yaw_vel = robot.data.root_ang_vel_b[:, 2]
+
+            vel_err = torch.linalg.norm(lin_vel - command[:, :2], dim=-1).mean().item()
+            yaw_err = torch.abs(yaw_vel - command[:, 2]).mean().item()
+            return float(vel_err), float(yaw_err)
+        except Exception:
+            return None, None
+        
+    def update(self, dones, info, env) -> None:
         """Call once per sim step to accumulate terminal statistics."""
-        base_contact = termination_mgr.get_term("base_contact")
-        bad_orientation = termination_mgr.get_term("bad_orientation")
-        time_out = termination_mgr.get_term("time_out")
+        base_contact = env.termination_manager.get_term("base_contact")
+        bad_orientation = env.termination_manager.get_term("bad_orientation")
+        time_out = env.termination_manager.get_term("time_out")
 
         self.total_terminals += int(dones.sum().item())
         self.total_base_contact += int((dones & base_contact).sum().item())
@@ -26,8 +43,9 @@ class OODMetrics:
         self.total_timeout += int((dones & time_out).sum().item())
 
         if dones.any():
-            vel_reward = info["log"]["Episode_Reward/track_lin_vel_xy"]
-            self.episode_vel_rewards.append(vel_reward.mean().item())
+            vel_err, yaw_err = self.compute_velocity_error(env)
+            if vel_err is not None and yaw_err is not None:
+                self.vel_tracking_errors.append((vel_err, yaw_err))
 
     @property
     def computed_fractions(self) -> dict | None:
@@ -39,10 +57,14 @@ class OODMetrics:
             "timeout_fraction": self.total_timeout / n,
             "base_contact_fraction": self.total_base_contact / n,
             "bad_orientation_fraction": self.total_bad_orientation / n,
-            "avg_vel_reward": (
-                sum(self.episode_vel_rewards) / len(self.episode_vel_rewards)
-                if self.episode_vel_rewards else None
+            "avg_vel_error": (
+                sum(err[0] for err in self.vel_tracking_errors) / len(self.vel_tracking_errors)
+                if self.vel_tracking_errors else None
             ),
+            "avg_yaw_error": (
+                sum(err[1] for err in self.vel_tracking_errors) / len(self.vel_tracking_errors)
+                if self.vel_tracking_errors else None
+            )
         }
 
     def print_summary(self) -> None:
@@ -52,12 +74,16 @@ class OODMetrics:
             print("[OOD] No episodes completed — nothing to report.")
             return
 
+        def fmt(v):
+            return f"{v:.4f}" if v is not None else "N/A"
+
         print("\n===== OOD Metrics =====")
-        print(f"Episodes completed:      {self.total_terminals}")
-        print(f"Velocity tracking reward:{fracs['avg_vel_reward']:.4f}")
-        print(f"Timeout fraction:        {fracs['timeout_fraction']:.4f}")
-        print(f"Base-contact fraction:   {fracs['base_contact_fraction']:.4f}")
-        print(f"Bad-orientation fraction:{fracs['bad_orientation_fraction']:.4f}")
+        print(f"Episodes completed:       {self.total_terminals}")
+        print(f"Average velocity error:   {fmt(fracs['avg_vel_error'])}")
+        print(f"Average yaw error:        {fmt(fracs['avg_yaw_error'])}")
+        print(f"Timeout fraction:         {fmt(fracs['timeout_fraction'])}")
+        print(f"Base-contact fraction:    {fmt(fracs['base_contact_fraction'])}")
+        print(f"Bad-orientation fraction: {fmt(fracs['bad_orientation_fraction'])}")
 
     def save(self, task_name: str, description: str, output_dir: str = "Metrics") -> str:
         """

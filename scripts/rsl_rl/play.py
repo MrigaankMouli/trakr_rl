@@ -203,7 +203,7 @@ def main():
             obs, _, dones, info = env.step(actions)
 
             if args_cli.eval: 
-                metrics.update(dones, info, env.unwrapped.termination_manager)
+                metrics.update(dones, info, env.unwrapped)
                 metrics.print_summary()
 
         if args_cli.video:

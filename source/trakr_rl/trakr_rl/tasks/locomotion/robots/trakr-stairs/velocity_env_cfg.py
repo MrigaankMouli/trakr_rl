@@ -369,7 +369,7 @@ class TerminationsCfg:
         func=mdp.illegal_contact,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="base_link"), "threshold": 1.0},  # Updated body_name from 'base' to 'base_link' to match the trakr_imu.usd file
     )
-    # bad_orientation = DoneTerm(func=mdp.bad_orientation, params={"limit_angle": 0.8})
+    bad_orientation = DoneTerm(func=mdp.bad_orientation, params={"limit_angle": 1.0})
 
 
 @configclass

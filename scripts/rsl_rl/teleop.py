@@ -191,8 +191,8 @@ def main():
             command = temp_command.clone()
             command[:, :2] = torch.stack(
                 (
-                    temp_command[:,1],
-                    -temp_command[:,0]
+                    -temp_command[:,1],
+                    temp_command[:,0]
                 ),dim=1)
             
             env.unwrapped.command_manager._terms[

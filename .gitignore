@@ -6,3 +6,5 @@ assets/clips/raw_c1/
 outputs/
 
 logs/
+
+*.onnx

@@ -76,7 +76,7 @@ case "$1" in
         ;;
     -t|--train)
         shift
-        ${python_exe} ${TRAKR_RL_PATH}/scripts/rsl_rl/train.py --headless "$@"
+        ${python_exe} ${TRAKR_RL_PATH}/scripts/rsl_rl/train.py  "$@"
         ;;
     -te|--teleop)
         shift

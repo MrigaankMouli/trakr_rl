@@ -104,13 +104,14 @@ class RobotSceneCfg(InteractiveSceneCfg):
     )
     lidar = RayCasterCfg(
         prim_path="{ENV_REGEX_NS}/trakr/trakr/base_link",  # updated to match the trakr_imu.usd file --> inspected the Stage and the prim paths in IsaacSim
-        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.2)),
-        ray_alignment="yaw",
+        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.1)),
+        ray_alignment="base",
+        max_distance = 2.0,
         pattern_cfg=patterns.LidarPatternCfg(
             channels = 16,
             vertical_fov_range = (-30.0, 30.0),
             horizontal_fov_range = (-180.0, 180.0),
-            horizontal_res = 0.5,
+            horizontal_res = 5.0,
         ),
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
@@ -283,6 +284,12 @@ class ObservationsCfg:
         #     params={"sensor_cfg": SceneEntityCfg("height_scanner")},
         #     clip=(-1.0, 5.0),
         # )
+        lidar = ObsTerm(func=mdp.lidar,
+            params={"sensor_cfg": SceneEntityCfg("lidar"),
+                   "normalize": True,
+                   },
+            clip=(0.0, 1.0)
+        )
 
         def __post_init__(self):
             self.history_length = 5

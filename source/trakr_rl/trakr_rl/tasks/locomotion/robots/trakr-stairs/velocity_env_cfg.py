@@ -102,6 +102,20 @@ class RobotSceneCfg(InteractiveSceneCfg):
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
+    lidar = RayCasterCfg(
+        prim_path="{ENV_REGEX_NS}/trakr/trakr/base_link",  # updated to match the trakr_imu.usd file --> inspected the Stage and the prim paths in IsaacSim
+        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.1)),
+        ray_alignment="base",
+        max_distance = 2.0,
+        pattern_cfg=patterns.LidarPatternCfg(
+            channels = 16,
+            vertical_fov_range = (-30.0, 30.0),
+            horizontal_fov_range = (-180.0, 180.0),
+            horizontal_res = 5.0,
+        ),
+        debug_vis=False,
+        mesh_prim_paths=["/World/ground"],
+    )
     contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/trakr/trakr/.*", history_length=3, track_air_time=True)  # updated to match the trakr_imu.usd file --> inspected the Stage and the prim paths in IsaacSim
     # lights
     sky_light = AssetBaseCfg(
@@ -258,6 +272,12 @@ class ObservationsCfg:
         #     params={"sensor_cfg": SceneEntityCfg("height_scanner")},
         #     clip=(-1.0, 5.0),
         # )
+        lidar = ObsTerm(func=mdp.lidar,
+            params={"sensor_cfg": SceneEntityCfg("lidar"),
+                   "normalize": True,
+                   },
+            clip=(0.0, 1.0)
+        )
 
         def __post_init__(self):
             self.history_length = 5
@@ -289,7 +309,7 @@ class RewardsCfg:
     energy = RewTerm(func=mdp.energy, weight=-2e-5)
 
     # -- robot
-    flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=-2.5)
+    # flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=-2.5)
 
     stable_progress = RewTerm(
         func=mdp.stable_progress,
@@ -369,7 +389,7 @@ class TerminationsCfg:
         func=mdp.illegal_contact,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="base_link"), "threshold": 1.0},  # Updated body_name from 'base' to 'base_link' to match the trakr_imu.usd file
     )
-    bad_orientation = DoneTerm(func=mdp.bad_orientation, params={"limit_angle": 1.0})
+    bad_orientation = DoneTerm(func=mdp.bad_orientation, params={"limit_angle": 1.5})
 
 
 @configclass

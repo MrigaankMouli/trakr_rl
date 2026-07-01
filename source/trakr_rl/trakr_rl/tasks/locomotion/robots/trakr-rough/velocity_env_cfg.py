@@ -102,6 +102,19 @@ class RobotSceneCfg(InteractiveSceneCfg):
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
+    lidar = RayCasterCfg(
+        prim_path="{ENV_REGEX_NS}/trakr/trakr/base_link",  # updated to match the trakr_imu.usd file --> inspected the Stage and the prim paths in IsaacSim
+        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.2)),
+        ray_alignment="yaw",
+        pattern_cfg=patterns.LidarPatternCfg(
+            channels = 16,
+            vertical_fov_range = (-30.0, 30.0),
+            horizontal_fov_range = (-180.0, 180.0),
+            horizontal_res = 0.5,
+        ),
+        debug_vis=False,
+        mesh_prim_paths=["/World/ground"],
+    )
     contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/trakr/trakr/.*", history_length=3, track_air_time=True)  # updated to match the trakr_imu.usd file --> inspected the Stage and the prim paths in IsaacSim
     # lights
     sky_light = AssetBaseCfg(

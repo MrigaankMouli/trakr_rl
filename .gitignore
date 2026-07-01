@@ -7,4 +7,6 @@ outputs/
 
 logs/
 
-*.onnx
+exported/
+
+videos/

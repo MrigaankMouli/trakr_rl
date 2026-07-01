@@ -1,4 +1,4 @@
-# Reinforcement Learning platformcodebase for Trakr
+# Reinforcement Learning codebase for Trakr
 
 Isaac Lab workspace for Trakr locomotion training and evaluation.
 

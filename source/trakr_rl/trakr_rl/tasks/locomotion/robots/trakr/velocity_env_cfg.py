@@ -101,6 +101,30 @@ class RobotSceneCfg(InteractiveSceneCfg):
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
+    # lidar = RayCasterCfg(
+    #     prim_path="{ENV_REGEX_NS}/trakr/trakr/base_link",  # updated to match the trakr_imu.usd file --> inspected the Stage and the prim paths in IsaacSim
+    #     offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.1)),
+    #     ray_alignment="base",
+    #     max_distance = 2.0,
+    #     pattern_cfg=patterns.LidarPatternCfg(
+    #         channels = 16,
+    #         vertical_fov_range = (-30.0, 30.0),
+    #         horizontal_fov_range = (-180.0, 180.0),
+    #         horizontal_res = 5.0,
+    #     ),
+    #     debug_vis=False,
+    #     mesh_prim_paths=["/World/ground"],
+    # )
+    lidar = LidarRtx(
+    prim_path="{ENV_REGEX_NS}/trakr/trakr/base_link",
+    position=(0.0,0.0,0.1),
+
+    config_file_name="OS1_64",
+
+    translation=(0,0,0),
+    orientation=(1,0,0,0),
+    )
+
     contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/trakr/trakr/.*", history_length=3, track_air_time=True)
     # lights
     sky_light = AssetBaseCfg(
@@ -232,7 +256,7 @@ class ObservationsCfg:
         last_action = ObsTerm(func=mdp.last_action, clip=(-100, 100))
 
         def __post_init__(self):
-            # self.history_length = 5
+            self.history_length = 5
             self.enable_corruption = True
             self.concatenate_terms = True
 
@@ -257,9 +281,15 @@ class ObservationsCfg:
         #     params={"sensor_cfg": SceneEntityCfg("height_scanner")},
         #     clip=(-1.0, 5.0),
         # )
+        lidar = ObsTerm(func=mdp.lidar,
+            params={"sensor_cfg": SceneEntityCfg("lidar"),
+                   "normalize": True,
+                   },
+            clip=(0.0, 1.0)
+        )
 
-        # def __post_init__(self):
-        #     self.history_length = 5
+        def __post_init__(self):
+            self.history_length = 5
 
     # privileged observations
     critic: CriticCfg = CriticCfg()
@@ -271,7 +301,7 @@ class RewardsCfg:
 
     # -- task
     track_lin_vel_xy = RewTerm(
-        func=mdp.track_lin_vel_xy_exp, weight=1.5, params={"command_name": "base_velocity", "std": math.sqrt(0.25)}
+        func=mdp.track_lin_vel_xy_exp, weight=3.0, params={"command_name": "base_velocity", "std": math.sqrt(0.25)}
     )
     track_ang_vel_z = RewTerm(
         func=mdp.track_ang_vel_z_exp, weight=0.75, params={"command_name": "base_velocity", "std": math.sqrt(0.25)}
@@ -331,6 +361,16 @@ class RewardsCfg:
     #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_toe"),
     #     },
     # )
+    feet_height_body = RewTerm(
+        func=mdp.feet_height_body,
+        weight=-1.0,
+        params={
+            "command_name": "base_velocity",
+            "target_height": 0.15,
+            "tanh_mult": 8.0,
+            "asset_cfg": SceneEntityCfg("robot", body_names=[".*_toe"]),
+        },
+    )
 
     # -- other
     undesired_contacts = RewTerm(
@@ -414,7 +454,7 @@ class RobotPlayEnvCfg(RobotEnvCfg):
         self.scene.terrain.terrain_generator.num_cols = 1
         self.commands.base_velocity.ranges = self.commands.base_velocity.limit_ranges
 
-        self.terminations.time_out = None
+        # self.terminations.time_out = None
 
         self.events.push_robot = None
         self.events.base_external_force_torque = None

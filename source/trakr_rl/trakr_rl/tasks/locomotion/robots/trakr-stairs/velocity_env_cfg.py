@@ -209,10 +209,10 @@ class CommandsCfg:
         rel_standing_envs=0.1,
         debug_vis=True,
         ranges=mdp.UniformLevelVelocityCommandCfg.Ranges(
-            lin_vel_x=(-0.3, 0.3), lin_vel_y=(-1.0, 1.0), ang_vel_z=(-0.5, 0.5)
+            lin_vel_x=(-0.3, 0.3), lin_vel_y=(-0.3, 1.0), ang_vel_z=(-0.5, 0.5)
         ),
         limit_ranges=mdp.UniformLevelVelocityCommandCfg.Ranges(
-            lin_vel_x=(-1.0, 1.0), lin_vel_y=(-1.0, 1.0), ang_vel_z=(-1.0, 1.0)
+            lin_vel_x=(-1.0, 1.0), lin_vel_y=(-0.3, 1.0), ang_vel_z=(-1.0, 1.0)
         ),
     )
 
@@ -313,12 +313,12 @@ class RewardsCfg:
 
     stable_progress = RewTerm(
         func=mdp.stable_progress,
-        weight=3.0
+        weight=2.0
     )
 
     joint_pos = RewTerm(
         func=mdp.joint_position_penalty,
-        weight=-1.5,
+        weight=-0.75,
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
             "stand_still_scale": 5.0,
@@ -355,7 +355,7 @@ class RewardsCfg:
         weight=-1.5,
         params={
             "command_name": "base_velocity",
-            "target_height": 0.15,
+            "target_height": 0.18,
             "tanh_mult": 15.0,
             "asset_cfg": SceneEntityCfg("robot", body_names=[".*_toe"]),
         },

@@ -144,13 +144,22 @@ $$
 
 ## Reward Weight Summary
 
-| Term | Sign | Notes |
-|---|---|---|
-| Velocity tracking | + | Exponential kernel; primary training signal |
-| Body roll | − | Quadratic in roll angle |
-| Pitch rate | − | Quadratic in pitch rate |
-| Foot height | + | Active only during swing; velocity-gated |
-| Joint position | − | Weight increased to suppress wide gait |
-| Stable progress | + | Combines forward progress with stability |
-| Energy / torque | − | Standard penalties from unitree_rl_lab |
-| Contact / slip | − | Standard penalties from unitree_rl_lab |
+| Term | Weight | Sign | Notes |
+|---|---:|:---:|---|
+| `track_lin_vel_xy` | 4.0 | + | Exponential tracking reward for commanded XY base velocity (`base_velocity`) |
+| `track_ang_vel_z` | 1.25 | + | Exponential tracking reward for commanded yaw velocity |
+| `stable_progress` | 2.0 | + | Encourages forward progress while maintaining stability |
+| `feet_air_time` | 0.5 | + | Rewards swing duration; active only above command threshold |
+| `base_linear_velocity` | -2.0 | − | Penalizes vertical base velocity (`z`) |
+| `feet_height_body` | -1.5 | − | Penalizes deviation from target foot swing height (0.18 m) |
+| `undesired_contacts` | -1.0 | − | Penalizes collisions involving hip/thigh/shank links |
+| `joint_pos` | -0.75 | − | Penalizes large joint deviations; stronger when standing |
+| `air_time_variance` | -0.5 | − | Penalizes asymmetric leg swing timing |
+| `feet_slide` | -0.1 | − | Penalizes foot slipping while in contact |
+| `action_rate` | -0.1 | − | Penalizes abrupt action changes between timesteps |
+| `base_angular_velocity` | -0.05 | − | Penalizes roll/pitch angular velocity |
+| `dof_pos_limits` | -10.0 | − | Strong penalty for approaching or exceeding joint limits |
+| `joint_torques` | -2e-4 | − | Penalizes actuator effort |
+| `energy` | -2e-5 | − | Penalizes power consumption |
+| `joint_vel` | -0.001 | − | Penalizes excessive joint velocity |
+| `joint_acc` | -2.5e-7 | − | Penalizes excessive joint acceleration |

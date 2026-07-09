@@ -23,7 +23,68 @@ The critic additionally receives privileged observations (base linear velocity, 
 
 ---
 
-## 2. PPO Hyperparameters
+## 2. LiDAR Latent Observation
+
+The policy observation contains the raw normalized LiDAR scan, but the actor does not feed that full scan directly into the action MLP. A custom actor-critic module encodes the LiDAR slice into a compact latent inside the actor, then concatenates that latent with the proprioceptive observations before computing actions.
+
+| Property | Value |
+|---|---|
+| Raw LiDAR source | `mdp.lidar` / `RayCasterCfg` sensor named `lidar` |
+| Policy observation term | `mdp.lidar` |
+| Actor-critic class | `ActorCriticLidarEncoder` |
+| Encoder | MLP `[input_dim, 256, 128, 64]` |
+| Latent dimension | 64 |
+| Activation | ELU |
+| Policy history length | 5 |
+| Raw LiDAR rays | 1152 values/frame |
+| Raw LiDAR history | 5760 values |
+
+The raw LiDAR term is included as the final policy observation term:
+
+```python
+lidar = ObsTerm(
+    func=mdp.lidar,
+    params={
+        "sensor_cfg": SceneEntityCfg("lidar"),
+        "normalize": True,
+    },
+    clip=(0.0, 1.0),
+)
+```
+
+The actor-side encoder is implemented in `source/trakr_rl/trakr_rl/tasks/locomotion/agents/lidar_actor_critic.py`. During the PPO update, RSL-RL samples raw observations from the rollout buffer and calls the actor again. The actor then recomputes:
+
+```text
+raw actor observation
+-> split proprioception and LiDAR history
+-> LiDAR encoder
+-> proprioception + LiDAR latent
+-> actor MLP
+-> action distribution
+```
+
+Because the encoder is part of the actor-critic module, its parameters are included in PPO's optimizer automatically and receive gradients through the policy loss:
+
+```text
+PPO policy loss -> actor MLP -> LiDAR latent -> LiDAR encoder weights
+```
+
+The custom actor is selected in `source/trakr_rl/trakr_rl/tasks/locomotion/agents/rsl_rl_ppo_cfg.py`:
+
+```python
+policy = RslRlPpoActorCriticLidarEncoderCfg(
+    init_noise_std=1.0,
+    actor_hidden_dims=[256, 128, 64],
+    critic_hidden_dims=[256, 128, 64],
+    activation="elu",
+)
+```
+
+The critic still receives LiDAR through the critic observation group. The deployed policy receives raw LiDAR in its observation vector, but the exported network uses only the learned latent internally before computing actions.
+
+---
+
+## 3. PPO Hyperparameters
 
 Training uses the [RSL-RL](https://github.com/leggedrobotics/rsl_rl) on-policy PPO implementation.
 
@@ -55,7 +116,7 @@ $$
 
 ---
 
-## 3. Runner Configuration
+## 4. Runner Configuration
 
 The PPO runner is defined in `tasks/locomotion/agents/rsl_rl_ppo_cfg.py`.
 
@@ -87,7 +148,7 @@ class BasePPORunnerCfg(OnPolicyRunnerCfg):
 
 ---
 
-## 4. Checkpoint Output
+## 5. Checkpoint Output
 
 Trained checkpoints and exported policies are saved to:
 

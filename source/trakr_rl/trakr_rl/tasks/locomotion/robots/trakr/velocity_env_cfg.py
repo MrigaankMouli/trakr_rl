@@ -101,29 +101,29 @@ class RobotSceneCfg(InteractiveSceneCfg):
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
-    # lidar = RayCasterCfg(
-    #     prim_path="{ENV_REGEX_NS}/trakr/trakr/base_link",  # updated to match the trakr_imu.usd file --> inspected the Stage and the prim paths in IsaacSim
-    #     offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.1)),
-    #     ray_alignment="base",
-    #     max_distance = 2.0,
-    #     pattern_cfg=patterns.LidarPatternCfg(
-    #         channels = 16,
-    #         vertical_fov_range = (-30.0, 30.0),
-    #         horizontal_fov_range = (-180.0, 180.0),
-    #         horizontal_res = 5.0,
-    #     ),
-    #     debug_vis=False,
-    #     mesh_prim_paths=["/World/ground"],
-    # )
-    lidar = LidarRtx(
-    prim_path="{ENV_REGEX_NS}/trakr/trakr/base_link",
-    position=(0.0,0.0,0.1),
-
-    config_file_name="OS1_64",
-
-    translation=(0,0,0),
-    orientation=(1,0,0,0),
+    lidar = RayCasterCfg(
+        prim_path="{ENV_REGEX_NS}/trakr/trakr/base_link",  # updated to match the trakr_imu.usd file --> inspected the Stage and the prim paths in IsaacSim
+        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.1)),
+        ray_alignment="base",
+        max_distance = 2.0,
+        pattern_cfg=patterns.LidarPatternCfg(
+            channels = 16,
+            vertical_fov_range = (-30.0, 30.0),
+            horizontal_fov_range = (-180.0, 180.0),
+            horizontal_res = 5.0,
+        ),
+        debug_vis=False,
+        mesh_prim_paths=["/World/ground"],
     )
+    # lidar = LidarRtx(
+    # prim_path="{ENV_REGEX_NS}/trakr/trakr/base_link",
+    # position=(0.0,0.0,0.1),
+
+    # config_file_name="OS1_64",
+
+    # translation=(0,0,0),
+    # orientation=(1,0,0,0),
+    # )
 
     contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/trakr/trakr/.*", history_length=3, track_air_time=True)
     # lights
@@ -254,6 +254,12 @@ class ObservationsCfg:
             func=mdp.joint_vel_rel, scale=0.05, clip=(-100, 100), noise=Unoise(n_min=-1.5, n_max=1.5)
         )
         last_action = ObsTerm(func=mdp.last_action, clip=(-100, 100))
+        lidar = ObsTerm(func=mdp.lidar,
+            params={"sensor_cfg": SceneEntityCfg("lidar"),
+                   "normalize": True,
+                   },
+            clip=(0.0, 1.0)
+        )
 
         def __post_init__(self):
             self.history_length = 5

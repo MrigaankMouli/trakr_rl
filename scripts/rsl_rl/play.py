@@ -67,6 +67,7 @@ from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlVecEnvWrapper, expor
 from isaaclab_tasks.utils import get_checkpoint_path
 
 import trakr_rl.tasks  # noqa: F401
+from trakr_rl.tasks.locomotion.agents.lidar_actor_critic import register_custom_rsl_rl_modules
 from trakr_rl.utils.parser_cfg import parse_env_cfg
 from trakr_rl.utils.ood_metrics import OODMetrics
 
@@ -132,6 +133,7 @@ def main():
 
     print(f"[INFO]: Loading model checkpoint from: {resume_path}")
     # load previously trained model
+    register_custom_rsl_rl_modules()
     if not hasattr(agent_cfg, "class_name") or agent_cfg.class_name == "OnPolicyRunner":
         runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
     elif agent_cfg.class_name == "DistillationRunner":

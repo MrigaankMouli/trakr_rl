@@ -10,7 +10,7 @@ from isaaclab.actuators import ActuatorNetMLPCfg, DCMotorCfg, ImplicitActuatorCf
 from isaaclab.assets.articulation import ArticulationCfg
 from isaaclab.utils import configclass
 
-TRAKR_USD_PATH = os.path.join(os.path.dirname(__file__), "usd", "trakr_imu.usd")
+TRAKR_USD_PATH = os.path.join(os.path.dirname(__file__), "usd", "robot.usd")
 
 
 @configclass
@@ -52,10 +52,8 @@ TRAKR_CFG = TrakrArticulationCfg(
         pos=(0.0, 0.0, 0.255),
         joint_pos={
             ".*_adduction": 0.0,
-            ".*F_hip": 0.0,
-            ".*B_hip": 0.0,
-            "L[F,B]_knee": 0.0,
-            "R[F,B]_knee": 0.0,
+            ".*_hip": 0.0,
+            ".*_knee": 0.0,
         },
         joint_vel={".*": 0.0},
     ),
@@ -74,9 +72,9 @@ TRAKR_CFG = TrakrArticulationCfg(
     },
     #Joint Names were taken from the trakr_imu.usd file by inspecting the Stage in IsaacSim
         joint_sdk_names=[
-        "LB_adduction", "LB_hip", "LB_knee",
-        "LF_adduction", "LF_hip", "LF_knee",
-        "RB_adduction", "RB_hip", "RB_knee",
-        "RF_adduction", "RF_hip", "RF_knee",
+        "FL_adduction", "FL_hip", "FL_knee",
+        "FR_adduction", "FR_hip", "FR_knee",
+        "RL_adduction", "RL_hip", "RL_knee",
+        "RR_adduction", "RR_hip", "RR_knee",
     ],
 )

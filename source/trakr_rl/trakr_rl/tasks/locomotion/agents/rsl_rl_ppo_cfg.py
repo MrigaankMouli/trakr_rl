@@ -18,7 +18,7 @@ class RslRlPpoActorCriticLidarEncoderCfg(RslRlPpoActorCriticCfg):
 @configclass
 class BasePPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 32
-    max_iterations = 2000
+    max_iterations = 4000
     save_interval = 100
     experiment_name = ""  # same as task name
     empirical_normalization = False

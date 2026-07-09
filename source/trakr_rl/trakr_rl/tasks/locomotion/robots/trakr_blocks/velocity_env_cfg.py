@@ -95,7 +95,7 @@ class RobotSceneCfg(InteractiveSceneCfg):
 
     # sensors
     height_scanner = RayCasterCfg(
-        prim_path="{ENV_REGEX_NS}/trakr/trakr/base_link",  # updated to match the trakr_imu.usd file --> inspected the Stage and the prim paths in IsaacSim
+        prim_path="{ENV_REGEX_NS}/trakr/base",  # updated to match the trakr_imu.usd file --> inspected the Stage and the prim paths in IsaacSim
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
         ray_alignment="yaw",
         pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
@@ -103,7 +103,7 @@ class RobotSceneCfg(InteractiveSceneCfg):
         mesh_prim_paths=["/World/ground"],
     )
     lidar = RayCasterCfg(
-        prim_path="{ENV_REGEX_NS}/trakr/trakr/base_link",  # updated to match the trakr_imu.usd file --> inspected the Stage and the prim paths in IsaacSim
+        prim_path="{ENV_REGEX_NS}/trakr/base",  # updated to match the trakr_imu.usd file --> inspected the Stage and the prim paths in IsaacSim
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 0.1)),
         ray_alignment="base",
         max_distance = 2.0,
@@ -116,7 +116,7 @@ class RobotSceneCfg(InteractiveSceneCfg):
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
-    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/trakr/trakr/.*", history_length=3, track_air_time=True)  # updated to match the trakr_imu.usd file --> inspected the Stage and the prim paths in IsaacSim
+    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/trakr/.*", history_length=3, track_air_time=True)  # updated to match the trakr_imu.usd file --> inspected the Stage and the prim paths in IsaacSim
     # lights
     sky_light = AssetBaseCfg(
         prim_path="/World/skyLight",
@@ -148,7 +148,7 @@ class EventCfg:
         func=mdp.randomize_rigid_body_mass,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="base_link"),  # Updated body_name from 'base' to 'base_link' to match the trakr_imu.usd file
+            "asset_cfg": SceneEntityCfg("robot", body_names="base"),  # Updated body_name from 'base' to 'base' to match the trakr_imu.usd file
             "mass_distribution_params": (-2.0, 4.0),
             "operation": "add",
         },
@@ -158,7 +158,7 @@ class EventCfg:
         func=mdp.randomize_rigid_body_com,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="base_link"),
+            "asset_cfg": SceneEntityCfg("robot", body_names="base"),
             "com_range":{
                 "x": (-0.05, 0.05),
                 "y": (-0.05, 0.05),
@@ -171,7 +171,7 @@ class EventCfg:
         func=mdp.apply_external_force_torque,
         mode="reset",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="base_link"),  # Updated body_name from 'base' to 'base_link' to match the trakr_imu.usd file
+            "asset_cfg": SceneEntityCfg("robot", body_names="base"),  # Updated body_name from 'base' to 'base' to match the trakr_imu.usd file
             "force_range": (0.0, 0.0),
             "torque_range": (-0.0, 0.0),
         },
@@ -396,7 +396,7 @@ class TerminationsCfg:
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
     base_contact = DoneTerm(
         func=mdp.illegal_contact,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=["base_link", ".*_hip" ]), "threshold": 1.0},  # Updated body_name from 'base' to 'base_link' to match the trakr_imu.usd file
+        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=["base", ".*_hip" ]), "threshold": 1.0},  # Updated body_name from 'base' to 'base' to match the trakr_imu.usd file
     )
     bad_orientation = DoneTerm(func=mdp.bad_orientation, params={"limit_angle": 0.8})
 

@@ -10,22 +10,22 @@ from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, R
 @configclass
 class RslRlPpoActorCriticLidarEncoderCfg(RslRlPpoActorCriticCfg):
     class_name: str = "ActorCriticLidarEncoder"
-    lidar_dim: int = 5760
-    lidar_latent_dim: int = 64
-    lidar_encoder_hidden_dims: tuple[int, ...] = (256, 128)
+    lidar_dim: int = 1152
+    lidar_latent_dim: int = 128
+    lidar_encoder_hidden_dims: tuple[int, ...] = (512, 256)
 
 
 @configclass
 class BasePPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 32
-    max_iterations = 4000
+    max_iterations = 3000
     save_interval = 100
     experiment_name = ""  # same as task name
     empirical_normalization = False
     policy = RslRlPpoActorCriticLidarEncoderCfg(
         init_noise_std=1.0,
-        actor_hidden_dims=[256, 128, 64],
-        critic_hidden_dims=[256, 128, 64],
+        actor_hidden_dims=[512, 256, 128],
+        critic_hidden_dims=[512, 256, 128],
         activation="elu",
     )
     algorithm = RslRlPpoAlgorithmCfg(

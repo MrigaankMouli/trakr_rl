@@ -245,6 +245,12 @@ class ObservationsCfg:
             func=mdp.joint_vel_rel, scale=0.05, clip=(-100, 100), noise=Unoise(n_min=-1.5, n_max=1.5)
         )
         last_action = ObsTerm(func=mdp.last_action, clip=(-100, 100))
+        lidar = ObsTerm(func=mdp.lidar,
+            params={"sensor_cfg": SceneEntityCfg("lidar"),
+                   "normalize": True,
+                   },
+            clip=(0.0, 1.0)
+        )
 
         def __post_init__(self):
             self.history_length = 5
@@ -318,7 +324,7 @@ class RewardsCfg:
 
     joint_pos = RewTerm(
         func=mdp.joint_position_penalty,
-        weight=-0.75,
+        weight=-1.5,
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
             "stand_still_scale": 5.0,
@@ -352,11 +358,11 @@ class RewardsCfg:
     
     feet_height_body = RewTerm(
         func=mdp.feet_height_body,
-        weight=-1.5,
+        weight=-2.0,
         params={
             "command_name": "base_velocity",
             "target_height": 0.18,
-            "tanh_mult": 15.0,
+            "tanh_mult": 10.0,
             "asset_cfg": SceneEntityCfg("robot", body_names=[".*_toe"]),
         },
     )

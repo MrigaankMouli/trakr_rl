@@ -147,10 +147,18 @@ def feet_height_body(
     )
     foot_z_target_error = torch.square(footpos_in_body_frame[:, :, 2] - target_height).view(env.num_envs, -1)
     foot_velocity_tanh = torch.tanh(tanh_mult * torch.norm(footvel_in_body_frame[:, :, :2], dim=2))
-    reward = torch.sum(foot_z_target_error *     foot_velocity_tanh, dim=1)
-    reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=1) > 0.1
-    # reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
-    return reward
+    penalty = torch.sum(foot_z_target_error * foot_velocity_tanh, dim=1)
+    # cmd = env.command_manager.get_command(command_name)
+    # cmd_speed = torch.linalg.norm(cmd[:, :2], dim=1)
+    # cmd_dir = cmd[:, :2]/(torch.linalg.norm(cmd[:, :2], dim=1, keepdim=True) + 1e-6)
+
+    # progress  = torch.sum(asset.data.root_lin_vel_b[:, :2] * cmd_dir, dim=1)
+    # progress = torch.clamp(progress, min=0.0)
+
+    # stuck = torch.clamp(cmd_speed - progress, min=0.0)
+    penalty *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+    # penalty = penalty * stuck
+    return penalty
 
 
 def foot_clearance_reward(
@@ -297,20 +305,40 @@ def stable_progress(
 
     cmd = env.command_manager.get_command(command_name)
     cmd_vel = torch.linalg.norm(cmd[:, :2], dim=1)
-
     cmd_dir = cmd[:, :2] / (torch.linalg.norm(cmd[:, :2],dim=1,keepdim=True) + 1e-6)
 
     robot_vel = asset.data.root_lin_vel_b[:, :2]
-
     lin_vel = torch.sum(robot_vel * cmd_dir,dim=1)
-
     lin_vel = torch.clamp(lin_vel,min=0.0)
 
     omega = asset.data.root_ang_vel_b
-
     pitch_rate = omega[:, 1]
     roll_rate = omega[:, 0]
 
     stability = torch.exp(-2.0 * (torch.square(pitch_rate)+torch.square(roll_rate)))
     return torch.where(cmd_vel>0.1, lin_vel*stability, torch.zeros_like(lin_vel))
 
+
+def feet_stumble(
+    env: ManagerBasedRLEnv,
+    sensor_cfg: SceneEntityCfg,
+    scale_factor: float, 
+) -> torch.Tensor:
+
+    sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+
+    normal_force = sensor.data.net_forces_w[:, sensor_cfg.body_ids]
+    friction = sensor.data.friction_forces_w
+
+    if friction is None:
+        friction_force = torch.zeros_like(normal_force)
+    else:
+        friction_force = sensor.data.friction_forces_w[:, sensor_cfg.body_ids]
+
+    total_force = normal_force + friction_force
+
+    horizontal_force = torch.linalg.norm(total_force[..., :2], dim=-1)
+    vertical_force = torch.abs(total_force[..., 2])
+
+    stumble = horizontal_force > scale_factor * vertical_force
+    return stumble.any(dim=1).float()

@@ -95,6 +95,8 @@ The $\tanh$ term ensures the reward primarily affects swinging feet; stance feet
 
 > **Note:** Foot height reward alone was insufficient — the robot cleared its feet but did not make forward progress. The velocity tracking reward weight was increased alongside this term to restore forward momentum.
 
+**Disadvantages:** This reward was found to be embodiement dependent and would only perform well for quadrupeds with a high base height. For quadrupeds with a low base height, the reward would condition the quadruped to crouch in its gait, as the foot height was in the frame of the robot base, and crouching would bring the distance between the foot and the robot base to be closer to the target. Hence, this reward has been discontinued.  
+
 ---
 
 ### 4. Joint Position Penalty (tuned for wide gait suppression)
@@ -119,6 +121,8 @@ Where:
 - $s$ — stand-still scaling factor
 
 **Effect:** Increasing this penalty's weight pushes the robot toward a compact nominal gait, while still allowing wider stances when needed for stair stability.
+
+**Disadvantages:** If a very high weight was associated with this reward, it will make the quadruped too conservative and restrict swing motion, thus affecting performance in stairs and sloped terrains.   
 
 ---
 
@@ -151,7 +155,6 @@ $$
 | `stable_progress` | 2.0 | + | Encourages forward progress while maintaining stability |
 | `feet_air_time` | 0.5 | + | Rewards swing duration; active only above command threshold |
 | `base_linear_velocity` | -2.0 | − | Penalizes vertical base velocity (`z`) |
-| `feet_height_body` | -1.5 | − | Penalizes deviation from target foot swing height (0.18 m) |
 | `undesired_contacts` | -1.0 | − | Penalizes collisions involving hip/thigh/shank links |
 | `joint_pos` | -0.75 | − | Penalizes large joint deviations; stronger when standing |
 | `air_time_variance` | -0.5 | − | Penalizes asymmetric leg swing timing |
